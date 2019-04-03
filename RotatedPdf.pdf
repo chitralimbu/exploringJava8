@@ -1,0 +1,573 @@
+PdfChecker()
+
+public class PdfChecker {
+	public Boolean rotIsZero(final Float angle){
+		return angle == 0f;		
+	}
+	
+	public Boolean validHeight(final Float height){
+		return height == 842.0f;
+	}
+	
+	public Boolean validwidth(final Float width){
+		return width == 595.0f;
+	}	
+}
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+PdfCheckerTest()
+
+package com.tcs.app.testing;
+
+import com.tcs.app.testing.Type;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+
+import org.junit.*;
+import org.junit.runners.*;
+import org.junit.runner.*;
+
+import com.tcs.orientationgui.page.AllTestCases;
+
+import static org.junit.Assert.assertEquals;
+
+@RunWith(Parameterized.class)
+
+public class PdfCheckerTest {
+	
+	private Type type;
+	private float input;
+	private boolean expected;
+	private int pageNo;
+	private String fileName;
+	private PdfChecker pdfChecker;
+	
+	@Before
+	public void initialize(){
+			pdfChecker = new PdfChecker();
+	}
+	
+	public PdfCheckerTest(Type type, float input, boolean expected, int pageNo, String fileName) {
+		this.type = type;
+		this.input = input;
+		this.expected = expected;
+		this.pageNo = pageNo;
+		this.fileName = fileName;
+	}
+	
+	@Parameterized.Parameters
+	public static Collection<Object[]> validatePdf(){
+		List<Object[]> testCases = new ArrayList<Object[]>();
+		try{
+			
+			AllTestCases tc = new AllTestCases(PopulateCases.filePath(PopulateCases.TEMP));
+			testCases = tc.finalTestCases();	
+		} catch (InterruptedException e) {
+			System.out.println(e);;
+		} catch (ExecutionException e) {
+			System.out.println(e);;
+		}
+		return testCases;
+
+	}
+	
+	@Test
+	public void testRotation(){
+		Assume.assumeTrue(type == Type.ANGLE);
+		System.out.print(fileName + ",");
+		System.out.print(pageNo+ ",");
+		System.out.print(type+ ",");
+		System.out.print(input+ ",");
+		System.out.print(0.0+ ",");
+		System.out.print(pdfChecker.rotIsZero(input)+ ",");
+		System.out.println();
+		assertEquals(expected, pdfChecker.rotIsZero(input));
+	}
+	@Test
+	public void testHeight(){
+		Assume.assumeTrue(type == Type.HEIGHT);
+		System.out.print(fileName+ ",");
+		System.out.print(pageNo+ ",");
+		System.out.print(type+ ",");
+		System.out.print(input+ ",");
+		System.out.print(842.0+ ",");
+		System.out.print(pdfChecker.validHeight(input)+ ",");
+		System.out.println();
+		assertEquals(expected, pdfChecker.validHeight(input));
+	}
+	
+	@Test
+	public void testWidth(){
+		Assume.assumeTrue(type == Type.WIDTH);
+		System.out.print(fileName+ ",");
+		System.out.print(pageNo+ ",");
+		System.out.print(type+ ",");
+		System.out.print(input+ ",");
+		System.out.print(595.0+ ",");
+		System.out.print(pdfChecker.validwidth(input)+ ",");
+		System.out.println();
+		assertEquals(expected, pdfChecker.validwidth(input));
+		
+	}
+}
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+PopulateCases.java
+
+package com.tcs.app.testing;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import com.tcs.gui.actionlistener.SubmitAction;
+
+public class PopulateCases extends Thread{
+	
+	private static final String ORIGINALPATH = "I:\\Operational Support\\Application Support\\Documents\\PDFTESTING\\TestPdfFolder"; 
+	private static final String MODIFIEDPATH = "I:\\Operational Support\\Application Support\\Documents\\PDFTESTING\\TestPdfFolder\\Rotated";
+	public static final String TEMP = "I:\\Operational Support\\Application Support\\Documents\\PDFTESTING\\TestPdfFolder\\RotatedAndResized";
+	
+	public static List<File> filePath(String directory) {
+		List<File> allFilePath = new ArrayList<File>();
+		File dir = new File(directory);
+		File[] dirFiles = dir.listFiles();
+		
+		for(File file: dirFiles){
+			if(file.isFile()){
+				allFilePath.add(file);
+			}
+		}
+		return allFilePath;
+	}
+	
+	public void modifyPdf(){
+		List<File> allFiles = filePath(ORIGINALPATH);
+		synchronized(this){
+			ExecutorService executor = Executors.newFixedThreadPool(allFiles.size());
+			for(File file : allFiles){
+				executor.execute(new SubmitAction(file, ORIGINALPATH, MODIFIEDPATH, TEMP));
+			}
+			
+			executor.shutdown();
+			try {
+				executor.awaitTermination(20, TimeUnit.SECONDS);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
+	}
+	
+}
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+TestRunner.java
+package com.tcs.app.testing;
+
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+
+import org.junit.runner.JUnitCore;
+import org.junit.runner.Result;
+import org.junit.runner.notification.Failure;
+
+public class TestRunner {
+	
+	public static void main(String[] args) throws IOException{
+		long startTime = System.currentTimeMillis();
+		PopulateCases populate = new PopulateCases();
+		populate.modifyPdf();
+		System.out.println(System.currentTimeMillis() - startTime + "\nPopulate.modifyPDF - Finished");
+		
+		PrintStream oldStream = System.out;
+		FileOutputStream outFile = null;
+		try {
+			
+			outFile = new FileOutputStream("H:\\result.csv");
+			PrintStream newPrintStream = new PrintStream(outFile);
+			System.setOut(newPrintStream);
+			System.out.println("Current File, Current Page, Testing Type, Input, Expected Value, Pass");
+			Result result = JUnitCore.runClasses(PdfCheckerTest.class);
+			
+			for(Failure failure: result.getFailures()){
+				System.out.println("failure tostring: " + failure.toString());
+			}
+			
+			System.out.println(result.wasSuccessful());
+		}catch(FileNotFoundException ex){
+			ex.printStackTrace();
+		}finally{
+			System.setOut(oldStream);
+			try {
+				outFile.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		System.out.println((System.currentTimeMillis() - startTime) + "\nWrite to CSV finished");
+	}
+}
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Type.java
+
+package com.tcs.app.testing;
+
+public enum Type {
+	ANGLE,
+	HEIGHT,
+	WIDTH,
+}
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+SubmitAction.java
+
+/*
+ * 
+ * Author: Chitra Limbu
+ * Last Modified: 8/3/2018
+ * 
+ */
+package com.tcs.gui.actionlistener;
+
+
+import java.io.File;
+import com.tcs.orientationgui.workers.*;
+
+public class SubmitAction implements Runnable{
+
+	private String source, destination, finalDest, temp;
+	private File file;
+	
+	public SubmitAction(File file, String source, String destination, String temp){
+		this.source = source;
+		this.destination = destination;
+		this.temp = temp;
+		this.file = file;
+	}
+
+	@Override
+	public void run() {
+		source = source + "\\" + file.getName();
+		destination = destination + "\\" + file.getName();
+		finalDest = temp + "\\" + file.getName();
+		
+		new RotatePdf().pdfManipulate(source, destination);
+		new ScalePdf().pdfManipulate(destination, finalDest);
+	}
+
+}
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+AllTestCases.java
+
+package com.tcs.orientationgui.page;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.io.File;
+import java.io.IOException;
+
+import com.itextpdf.text.pdf.PdfReader;
+import com.tcs.app.testing.PopulateCases;
+
+public class AllTestCases{
+
+	List<File> allFiles;
+	String path;
+	PdfReader reader;
+	List<Future<List<Object[]>>> allReturned;
+	
+	public AllTestCases(List<File> allFiles){
+		this.allFiles = allFiles;
+	}
+
+	public List<Future<List<Object[]>>> generateCases(){
+		
+		List<PdfInfo> ready = new ArrayList<PdfInfo>();
+		ExecutorService executor = Executors.newFixedThreadPool(allFiles.size());
+		try{
+			for(File file: allFiles){
+				path = PopulateCases.TEMP + "\\" + file.getName();
+				reader = new PdfReader(path);
+				ready.add(new PdfInfo(reader, path));
+			}
+			
+			allReturned = executor.invokeAll(ready);
+			executor.shutdown();
+			executor.awaitTermination(20, TimeUnit.SECONDS);
+		}catch(IOException e){
+			System.out.println("error here 1");
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			System.out.println("error here 2");
+			e.printStackTrace();
+		}
+		
+		reader.close();
+		return allReturned;	
+	}
+	
+	public List<Object[]> finalTestCases() throws InterruptedException, ExecutionException{
+		List<Object[]> testCases = new ArrayList<Object[]>();
+		List<Future<List<Object[]>>> cases = generateCases();
+		
+		for(int i = 0; i < cases.size(); i++){
+			testCases.addAll(cases.get(i).get());
+		}
+		
+		return testCases;
+	}
+}
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+package com.tcs.orientationgui.page;
+
+import com.tcs.app.testing.Type;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import com.itextpdf.text.pdf.PdfReader;
+
+public class PdfInfo implements Callable<List<Object[]>>{
+	private PdfReader reader;
+	private String path;
+	
+	public PdfInfo(PdfReader reader, String path){
+		this.reader = reader;
+		this.path = path;
+	}
+	
+	@Override
+	public List<Object[]> call(){
+		List<Object[]> testCases = new ArrayList<Object[]>();
+		for(int i = 1; i <= reader.getNumberOfPages(); i++){
+			testCases.add(new Object[]{Type.ANGLE, (float) reader.getPageRotation(i), true, i, path});
+			testCases.add(new Object[]{Type.HEIGHT, reader.getPageSize(i).getHeight(), true, i, path});
+			testCases.add(new Object[]{Type.WIDTH, reader.getPageSize(i).getWidth(), true, i, path});
+			
+		}
+		return testCases;
+	}
+	
+}
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+package com.tcs.orientationgui.workers;
+
+import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.PdfReader;
+
+public interface ManipulatePdf {
+	
+	public void pdfManipulate(String src, String dest);
+	
+	public float calcScale(float pageDim, float A4Size);
+	
+	public Rectangle getPageSize(PdfReader reader, int pageumber);
+	
+	public boolean isPortrait(PdfReader reader, int pagenumber);
+	
+}
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+
+package com.tcs.orientationgui.workers;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.PdfContentByte;
+import com.itextpdf.text.pdf.PdfImportedPage;
+import com.itextpdf.text.pdf.PdfReader;
+import com.itextpdf.text.pdf.PdfWriter;
+
+public class RotatePdf implements ManipulatePdf{
+
+	@Override
+	public void pdfManipulate(String src, String dest) {
+		try{
+			PdfReader reader = new PdfReader(src);
+			Rectangle pagesize = getPageSize(reader, 1);
+			Document document = new Document(pagesize);
+		
+			PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(dest));
+			document.open();
+
+			PdfContentByte cb = writer.getDirectContent();
+		
+			for(int i = 1; i <= reader.getNumberOfPages(); i++){
+				
+				pagesize = getPageSize(reader, i);
+				document.setPageSize(pagesize);
+				document.newPage();
+				PdfImportedPage page = writer.getImportedPage(reader, i);
+				
+				if(isPortrait(reader, i)){
+					/*
+					 * For explaination for the if and else statement refer to I:\Operational Support\Application Support\Documents\ItextPageRotateSupport.pdf
+					 */
+					cb.addTemplate(page, 0,0);
+				}else{
+					cb.addTemplate(page, 0, 1, -1, 0, pagesize.getWidth(), 0);
+				}
+			}
+			document.close();
+			reader.close();
+			
+		}catch(IOException e){
+			e.printStackTrace();
+		} catch (DocumentException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	@Override
+	public float calcScale(float pageDim, float A4Size) {
+		return A4Size / pageDim;
+	}
+
+	@Override
+	public Rectangle getPageSize(PdfReader reader, int pagenumber) {
+		Rectangle pagesize = reader.getPageSizeWithRotation(pagenumber);
+		return new Rectangle(Math.min(pagesize.getWidth(), pagesize.getHeight()), Math.max(pagesize.getWidth(), pagesize.getHeight()));
+	}
+
+	@Override
+	public boolean isPortrait(PdfReader reader, int pagenumber) {
+		Rectangle pagesize = reader.getPageSize(pagenumber);
+		return pagesize.getHeight() > pagesize.getWidth();
+	}
+	
+	
+	
+}
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+package com.tcs.orientationgui.workers;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.PdfContentByte;
+import com.itextpdf.text.pdf.PdfImportedPage;
+import com.itextpdf.text.pdf.PdfReader;
+import com.itextpdf.text.pdf.PdfWriter;
+
+public class ScalePdf implements ManipulatePdf{
+
+	@Override
+	public void pdfManipulate(String src, String dest) {
+		
+		try{
+			PdfReader reader = new PdfReader(src);
+			Rectangle pagesize = getPageSize(reader, 1);
+			Document document = new Document(pagesize);
+			PdfWriter writer = PdfWriter.getInstance(document, new FileOutputStream(dest));
+			document.open();
+			PdfContentByte cb = writer.getDirectContent();
+			
+			for(int i = 1; i <= reader.getNumberOfPages(); i++){
+					
+				Rectangle currentPagesize = getPageSize(reader, i);
+				
+				float widthScale = calcScale(currentPagesize.getWidth(), PageSize.A4.getWidth());
+				float heightScale = calcScale(currentPagesize.getHeight(), PageSize.A4.getHeight());
+				float newPageWidth = currentPagesize.getWidth() * widthScale;
+				float newPageHeight = currentPagesize.getHeight() * heightScale;
+				
+				Rectangle newPageSize = new Rectangle(newPageWidth, newPageHeight);
+				document.setPageSize(newPageSize);
+				document.newPage();
+				PdfImportedPage page = writer.getImportedPage(reader, i);
+				
+				cb.addTemplate(page, widthScale, 0, 0, heightScale, 0 , 0);
+			}
+			
+			document.close();
+			reader.close();
+		}catch(IOException e){
+			e.printStackTrace();
+		} catch (DocumentException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	@Override
+	public float calcScale(float pageDim, float A4Size) {
+		return A4Size / pageDim;
+	}
+
+	@Override
+	public Rectangle getPageSize(PdfReader reader, int pagenumber) {
+		Rectangle pagesize = reader.getPageSizeWithRotation(pagenumber);
+		return new Rectangle(Math.min(pagesize.getWidth(), pagesize.getHeight()), Math.max(pagesize.getWidth(), pagesize.getHeight()));
+	}
+
+	@Override
+	public boolean isPortrait(PdfReader reader, int pagenumber) {
+		Rectangle pagesize = reader.getPageSize(pagenumber);
+		return pagesize.getHeight() > pagesize.getWidth();
+	}
+	
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
