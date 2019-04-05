@@ -1,0 +1,13 @@
+/*Callable Java class - MyCallable.java*/
+
+List<Callable> ready = new ArrayList<Callable>();
+ExecutorService executor = Executors.newFixedThreadPool(***.size())
+
+for(String s: hostList){
+  ready.add((new Callable());
+}
+
+List<Future<String>> allReturned = executor.invokeAll(ready);
+executor.shutdown();
+
+Same for runnable - except runnable won't return anything. 
