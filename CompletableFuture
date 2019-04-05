@@ -14,3 +14,10 @@ List<CompletableFuture<Double>> relevanceFutures = topSites.stream().
         
 https://dzone.com/articles/java-8-completablefuture
 
+Similarly:
+
+List<Double> relevanceFeature = topSites.parallelStream()
+        .map(site -> download(site), *executor*) <- Don't have to add executor, parallel stream will auto optamise the threadpool. 
+        .map(this::parse)
+        .map(this::calculateRelevance)
+        .collect(Collectors.toList());
