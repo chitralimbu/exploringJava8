@@ -21,3 +21,19 @@ List<Double> relevanceFeature = topSites.parallelStream()
         .map(this::parse)
         .map(this::calculateRelevance)
         .collect(Collectors.toList());
+
+**************************************************
+
+ExecutorService executor = new Executors.newFixedThreadPool(10)
+
+List<String> completedFuture = topSites.stream()
+        .map(t -> CompletableFUture.supplyAsync(() -> t.calculate(), executor) <- again executor is optional
+        .map(CompletableFuture::join)
+        .collect(Collectors.toList());
+        
+If no ExecutorService is defined then parallelStream and CompletableFuture will both attempt to optimise the thread pool to a maximum
+of number of cores - 1 pools. 
+
+To get Number of cores: 
+int processors = Runtime.getRuntime().availableProcessors();
+        
