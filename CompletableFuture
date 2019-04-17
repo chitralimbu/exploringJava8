@@ -17,10 +17,14 @@ https://dzone.com/articles/java-8-completablefuture
 Similarly:
 
 List<Double> relevanceFeature = topSites.parallelStream()
-        .map(site -> download(site), *executor*) <- Don't have to add executor, parallel stream will auto optamise the threadpool. 
+        .map(site -> download(site))
         .map(this::parse)
         .map(this::calculateRelevance)
         .collect(Collectors.toList());
+
+ForkJoinPool customThreadPool = new ForkJoinPool(4);
+long actualTotal = customThreadPool.submit(
+        () -> aList.parallelStream().reduce(0L, Long::sum)).get();
 
 **************************************************
 
@@ -36,4 +40,5 @@ of number of cores - 1 pools.
 
 To get Number of cores: 
 int processors = Runtime.getRuntime().availableProcessors();
-        
+
+
