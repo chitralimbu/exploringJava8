@@ -1,0 +1,79 @@
+Possible questions asked:
+
+What is spring used for? why is it used ?
+
+Examples of using multiple threads. 
+
+Why is multithreading used ?
+
+Describe the architecture of a project you work on?
+
+Microservices
+
+Statistics questions about how many possible paths from A to B. 
+
+Why is REST used so widely.
+
+How do you keep up with technology news ? 
+
+	-ThoughtWorks Tech Roadmap
+	-Books
+	-Communicating with colleagues
+	-Want to go to confrences
+	-Blogs
+	
+If you could work on any technology during the free time, what would it be ?
+
+	-Machine Learning
+
+What steps would you take when you get a support issue. 
+
+	
+
+How can you manage the memory of an application ? is this memory pattern good or bad ?
+
+	-Close Resources
+	
+	JVM switches:
+	
+	-Xms : setting up heap size
+	-Xmx : setting up MAX heap size
+	-Xmn : for setting the size of the Young Generation - Rest of the space goes to for old Generation
+	-XX:PermGen - Setting up initial size of the Permanant Generation Memory
+	-XX:MaxPermGen - For setting maximum size of Perm Gen.
+	-XX: SurvivorRatio: Providing ratio of Eden space and survivor space
+		-If Young Generation size is 10m and VM switch is -XX:SurvivorRatio=2 then 5m will be reserved 
+		for Eden Space and 2.5m each ofr both Survivor spaces. Default value is 8. 
+	-XX:NewRatio: Providing ratio of old/new generation sizes. default value is 2
+	
+	
+Questions on garbage collection.
+	
+	-Objects created inside a method:
+		-When a mehod is called it goes inside the stack frame. 
+		When the method is popped from the stack, all its members dies and if some objects were created 
+		inside it then these objects become unreachable or anonymous after method execution 
+		thus becomes eligible for garbage collection. 
+	
+	-Reassigning the reference variable: 
+		-When reference id of one object is referenced to reference id of some other object then the
+		-previous object has no any longer reference to it and becomes unreachable. Becoming
+		eligible for GC. 
+	
+	-Nullifying the reference variable:
+		When all the reference variables of an object that are changed to NULL - it becomes unreachable
+		eligible for garbage collection.
+		
+	-Anonymous object:
+		The reference id of an anonymous object is not stored anywhere. Hence, it becomes unreachable;
+	
+JDK vs JRE 
+
+Conversion of java primitive types from one type to another.
+
+Inheritence and polymorphism related programs and questions on their behaviour
+
+Class constructors
+
+Inner and outer classes. 
+
