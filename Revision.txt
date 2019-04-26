@@ -10,6 +10,19 @@ Describe the architecture of a project you work on?
 
 Microservices
 
+Variant of SOA - Structures an application as a collection of loosely coupled services. 
+Microservices - Services are fine grained and protocals are lightweight. 
+Decomposing an application improves modularity - making apps easier to understand, develop
+test, and become more resilient to architecture erosion. 
+
+Parallelizes development by enabling autonomous teams to develop, deploy and scale
+servies independently. 
+
+Enables continous delivery and deployment. 
+
+Services form information barriers. 
+
+
 Statistics questions about how many possible paths from A to B. 
 
 Why is REST used so widely.
