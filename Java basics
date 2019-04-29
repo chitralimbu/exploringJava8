@@ -1,0 +1,61 @@
+STACK VS HEAP memory
+Java heap space is used by java runtime to allocate memory to
+Objects and JRE classes. 
+Whenever we create any object, it is always created in the Heap Space. 
+
+Garbage collection runs on heap memory used by objects that don't have any
+reference. 
+
+Stack memory: Used for execution of a thread - Contain method specific values
+short lived and references to other objects in the heap. 
+
+Stack is last in first out.
+
+we can use -XMS and -XMX : determine startup size and maximum heap memory.
+-Xss define the stack memory size. 
+
+---------------------------------------------
+
+JRE vs JDK
+
+JRE
+Package of everything necessary to run a compiled Java program. 
+- Including java virtual machine, java class library and the Java command. 
+
+JDK
+Has everything JRE has but also the compiler. Capable of creating and 
+compiling programs. 
+
+If you just want to run java programs then you want JRE. 
+If you are planning to programme in java JDK.
+
+=============================
+
+Java primitive types. 
+
+byte : 8
+char : 16
+short : 16
+int : 32
+long : 64
+float : 32
+double : 64
+boolean : true false
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

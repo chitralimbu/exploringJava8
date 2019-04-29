@@ -1,0 +1,22 @@
+SOA vs MicroServices:
+
+Microservices evolved from SOA. Share many characteristics
+
+Service oriented intigration
+
+App a 		| App B 		| App F 3rd Party propritory
+  |				|					|
+  \/			\/					\/
+------------------------------------------------
+			Enterprise Service Bus
+-------------------------------------------------
+
+Service-Oriented Intigration(SOI). Applications communicate with each other through common intigration layer standards SOAP/XML 
+over HTTP or JMS. 
+OESB. 
+OSB deeply rooted into their products. 
+Either write heavy orchestration logic in the ESB layer or the
+business logic itself in the service bus. 
+All enterprise level services are deployed and accessed via ESB.
+For such organisations Microservices are altogether different from 
+SOA. 
