@@ -1,0 +1,45 @@
+Reactive Programming: 
+
+Reactive Manifesto. 
+
+Perscription for building modern, cloud-scale architectures. 
+
+4 Key attributes. 
+
+Responsive: 
+
+-System responds in a timely manner if at all possible. 
+-Cornerstone for usability and utility - errors may be detected quickly and dealt with effectively. 
+-Rapid and consistent respoonse times, establishing reliable upper bounds - constant quality of service. 
+-Simplifies error handling, builds end user confidence, and encourages further interaction.
+
+Resilient:
+
+-The systems stays responsive at the face of failure. 
+-Achieved by - Replication, containment, isolation and delegation. 
+-Failures contained within each component, isolating components from each other - isolating components
+	from each other - ensuring parts of the system can fail and recover without comprimising the system
+	as a whole. 
+-Recovery of each component is delegated to another external component. 
+-Client of a component is not burdened with handling its failures. 
+
+Elastic: 
+
+-System stays responsive under varying workload. 
+-React to changes in the input rate by increasing or decreasing the resources allocated to these inputs. 
+-Designs have no contention or points or central bottlenecks. 
+-Resulting in ability to shard or replicate components and distribute inpus among them. 
+-Support predictive + reactive scaling algorithms by providing relevant live performance measures. 
+
+Message Driven: 
+
+-Asynchronous message-passing - establish boundry between components:
+	-Ensuring loose coupling, isolation, location transparancy. 
+-Delegate failures as messages. 
+-Message passing - enables load management, elasticity, and flow control by shaping and monitorin the message
+queues in the system + spplying back-pressure when necessary. 
+-Location transparancy: as a means of communication - enables for the management of failure to work with
+the same constructs and semantics across a cluster or within a single host. 
+-Non blocking communication allows recipients to only consume resources when active, leading to less
+system overhead. 
+
