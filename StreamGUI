@@ -1,0 +1,97 @@
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.text.DefaultCaret;
+
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
+
+public class StreamGUI {
+	public static void main(String[] args) throws IOException {
+		JFrame frame = new JFrame("My GUI");
+		JPanel panel = new JPanel();
+		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+		JButton button = new JButton("submit");
+		JTextField textField = new JTextField();
+		JTextArea textArea = new JTextArea(300, 300);
+		JScrollPane scroll = new JScrollPane(textArea);
+		textArea.setLineWrap(true);
+		DefaultCaret caret = (DefaultCaret)textArea.getCaret();
+		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+		
+		panel.add(scroll);
+		panel.add(button);
+		panel.add(textField);
+		
+		String username = "";
+		String password = "";
+		String hostName = "";
+
+		JSch jsch = new JSch();
+		Session session = null;
+		Channel channel = null;
+		
+		PrintStream printStream = new PrintStream(new CustomOutputStream(textArea));
+		System.setOut(printStream);
+		System.setErr(printStream);
+		
+		try {
+			OutputStream out;
+			session = jsch.getSession(username, hostName, 2222);
+			session.setPassword(password);
+			session.setConfig("StrictHostKeyChecking", "no");
+			session.setConfig("PreferredAuthentications", "password");
+			System.out.println("Connecting session .....");
+			session.connect();
+			channel = session.openChannel("shell");
+			channel.setInputStream(System.in); 
+			channel.setOutputStream(printStream);
+			out = channel.getOutputStream();
+			button.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent arg0) {
+					try {
+						out.write((textField.getText() + "\n").getBytes());
+						out.flush();
+						textField.setText("");
+					} catch (IOException e) {
+						
+						e.printStackTrace();
+					}
+				}
+				
+			});
+			
+			textField.addKeyListener(new KeyAdapter() {
+				@Override
+				public void keyPressed(KeyEvent e) {
+					if (e.getKeyCode()==KeyEvent.VK_ENTER){
+						button.doClick();
+				    }
+				}
+				
+			});
+			channel.connect();
+		}catch(JSchException e) {
+			e.printStackTrace();
+		}
+		frame.add(panel);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setSize(500, 500);
+		frame.setVisible(true);
+	}
+}
