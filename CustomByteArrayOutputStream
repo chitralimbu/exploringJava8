@@ -1,0 +1,40 @@
+package com.test.mina;
+
+import java.io.ByteArrayOutputStream;
+
+import javax.swing.JTextArea;
+
+public class CustomByteArrayOutputStream extends ByteArrayOutputStream{
+	
+	private JTextArea textArea;
+	
+	public CustomByteArrayOutputStream(JTextArea textArea) {
+		this.textArea = textArea;
+	}
+	
+	@Override
+	public void write(byte[] b, int off, int len) {
+		super.write(b, off, len);
+        String output = new String(b, off, len);
+        //textArea.append("OUTPUT: "+output);
+        
+        byte [] outputBytes = output.getBytes();
+        byte d = 0;
+        boolean bool = true;
+        for(int i = 0; i < outputBytes.length; i++) {
+        	if(outputBytes[i] == 27) {
+        		while(bool) {
+        			outputBytes[i] = (byte) 0;
+        			if(outputBytes[i] == 109) {
+        				bool = false;
+        				break;
+        			}
+        			i++;
+        		}
+        	}
+        	
+        }
+        String removeANSI = new String(outputBytes);
+        textArea.append("OUTPUT: "+ removeANSI);
+	}
+}
