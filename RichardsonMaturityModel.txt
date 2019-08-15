@@ -1,0 +1,264 @@
+Richardson Maturity Model
+
+Breaks down the principal elements of a REST approach into three steps. 
+
+-Resources
+-HTTP verbs
+-Hypermedia Controls
+
+Level 0:
+
+Using HTTP as a transport system for remote interactions - but without
+using any of the mechanisms of the web. 
+Essentially - using HTTP as a tunneling mechanism for your own remote interaction mechanism 
+(Usually based on Remote Procedure Invocation)
+
+Assume I want to book an appointment with my doctor. 
+Appointment software first needs to know what open slots my doctor has on a given date,
+It makes a request of the hospital appointment to obtain that information. 
+
+In a Level 0 scenario - The hospital will expose a service endpoint at some URI. 
+Then post to that endpoint a document containing the details of my request. 
+
+POST /appointmentService HTTP/1.1
+[various other headers]
+
+<openSlotRequest date = "2010-01-04" doctor = "mjones"/>
+
+The server will then return a document giving me this information. 
+
+HTTP/1.1 200 OK
+[various headers]
+
+<openSlotList>
+  <slot start = "1400" end = "1450">
+    <doctor id = "mjones"/>
+  </slot>
+  <slot start = "1600" end = "1650">
+    <doctor id = "mjones"/>
+  </slot>
+</openSlotList>
+
+Next step is to book an appointment, which I can again do by posing a documen to the endpoint. 
+
+POST /appointmentService HTTP/1.1
+[various other headers]
+
+<appointmentRequest>
+  <slot doctor = "mjones" start = "1400" end = "1450"/>
+  <patient id = "jsmith"/>
+</appointmentRequest>
+
+If all is well I get a response saying my appointment is booked. 
+
+HTTP/1.1 200 OK
+[various headers]
+
+<appointment>
+  <slot doctor = "mjones" start = "1400" end = "1450"/>
+  <patient id = "jsmith"/>
+</appointment>
+
+If there is a problem e.g. someone else got in before me, get some kind of error message
+in the reply body. 
+
+HTTP/1.1 200 OK
+[various headers]
+
+<appointmentRequestFailure>
+  <slot doctor = "mjones" start = "1400" end = "1450"/>
+  <patient id = "jsmith"/>
+  <reason>Slot not available</reason>
+</appointmentRequestFailure>
+
+This is a straightforward RPC style system. Simple as its just 
+slinging POX (Plain Old XML) back and forth. 
+
+===============================================================
+
+Level 1 - Resources
+
+Introduce resources. Rather than making all requests to a singular endpoint - 
+Now start talking to individual resources. 
+
+In our initial query, might have a resource for a given doctor. 
+
+POST /doctors/mjones HTTP/1.1
+[various other headers]
+
+<openSlotRequest date = "2010-01-04"/>
+
+The reply carries the same basic information, but each slot is now a resource that 
+can be addressed individually. 
+
+The reply carries the same basic information, but each slot is now a resource that 
+can be addressed individually.
+
+HTTP/1.1 200 OK
+[various headers]
+
+
+<openSlotList>
+  <slot id = "1234" doctor = "mjones" start = "1400" end = "1450"/>
+  <slot id = "5678" doctor = "mjones" start = "1600" end = "1650"/>
+</openSlotList>
+
+With specific resourcse booking an appointment means posting to a particular slot. 
+
+POST /slots/1234 HTTP/1.1
+[various other headers]
+
+<appointmentRequest>
+  <patient id = "jsmith"/>
+</appointmentRequest>
+
+If all goes well - get a similar reply to before. 
+
+HTTP/1.1 200 OK
+[various headers]
+
+<appointment>
+  <slot id = "1234" doctor = "mjones" start = "1400" end = "1450"/>
+  <patient id = "jsmith"/>
+</appointment>
+
+The difference now is that if anyone needs to do anything about the appointment, 
+like book some tests, they first get hold of the appointment resource. 
+Such as - http://royalhope.nhs.uk/slots/1234/appointment and post to that resource. 
+
+Rather than calling function in the ether and passing arguments, 
+call a method on one particular object providing arguments for the other information. 
+
+===============================================================
+
+Level 2 - HTTP verbs. 
+
+Used HTTP POST verbs for all mechanisms here in level 0 and 1, but can use GETs. 
+At these levels it doesn't make a difference, they are both being used as tunneling
+mechanisms allowing you to tunnel interactions through HTTP. 
+
+HTTP moves away from this, using HTTP verbs as closely as possible how they are used in HTTP
+itself. 
+
+For our list of slots, this means we want to use GET. 
+
+GET /doctors/mjones/slots?date=20100104&status=open HTTP/1.1
+Host: royalhope.nhs.uk
+
+The reply is the same as it would have been with the POST.
+
+HTTP/1.1 200 OK
+[various headers]
+
+<openSlotList>
+  <slot id = "1234" doctor = "mjones" start = "1400" end = "1450"/>
+  <slot id = "5678" doctor = "mjones" start = "1600" end = "1650"/>
+</openSlotList>
+
+At Level 2, the use of GET for a request like this is crucial. 
+HTTP defines GET as a safe operation: it doesn't make any significant changes to the state
+of anything. 
+
+Allows us to invoke GETs safely any number of thimes in any order and get the same results 
+each time. 
+
+Allows any participant in the couting of requests to use caching, which is a key element 
+in making the web perform as well as it does. 
+
+HTTP includes various measures to support caching, can be used by all participants in the
+communication. 
+
+Use rules of HTTP to take advantage of that capability. 
+
+To book an appointment we need a HTTP verb that does not change the state,
+POST or PUT. 
+
+POST /slots/1234 HTTP/1.1
+[various other headers]
+
+<appointmentRequest>
+  <patient id = "jsmith"/>
+</appointmentRequest>
+
+Theres a significant difference in how th eremote service responds, if all goeswell service
+replies with a response code of 201 to indicate there's a new resource in the world. 
+
+HTTP/1.1 201 Created
+Location: slots/1234/appointment
+[various headers]
+
+<appointment>
+  <slot id = "1234" doctor = "mjones" start = "1400" end = "1450"/>
+  <patient id = "jsmith"/>
+</appointment>
+
+The 201 response includes a location attribute with a URI that the client can use
+to GET the current state of the resource in the future. 
+The response here also includes a representation of that resource to sae the 
+client an extra call right now. 
+
+Difference if something goes wrong, such as someone else booking the session. 
+
+HTTP/1.1 409 Conflict
+[various headers]
+
+<openSlotList>
+  <slot id = "5678" doctor = "mjones" start = "1600" end = "1650"/>
+</openSlotList>
+
+The important part of this response is the use of a HTTP response code to indicate
+something has gone wrong. 
+In this case 409 seems a good choice to indicate that someone else has already updated the 
+resource in an incompatible way. 
+
+Rather than using a return code of 200 but including the error sesponse - 
+in level 2 we explicitly use some kind of error response. 
+It's up to the protocol designer to decide what codes to use. 
+
+There is an inconsitency creeping in here. 
+REST advocates talk about using all the HTTP verbs. They also justify their approach 
+by saying that REST is attempting to learn from the practical success of the web. 
+But the www doesn't use PUT or DELETE much in practice. 
+There are sensible reasons for using PUT and DELETE more, but the existance proof of the web
+isn't one of them. 
+
+The key elements that are supported by the existance of the web are the strong 
+separation between safe and non safe operations, together with using statis codes to help
+communicate the kinds of errors you run into. 
+
+===================================================================
+
+Level 3 Hypermedia Controls. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
