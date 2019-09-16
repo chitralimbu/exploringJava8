@@ -1,0 +1,82 @@
+Spring boot security. 
+
+Default basic authentication assumes the user being user. The default password will be printed in the console at
+startup. 
+Altenatively the username and password can be added in application.properties. 
+
+security.user.name=guest
+security.user.password=guest123
+
+=================================================
+
+As an alternate to application.properties you can use a .yaml file. 
+YAML provides a JOSN-like structured configuration comapred to the flat properties file. 
+
+server
+  port: 9080
+  
+Using multiple configuration files.
+
+It is possible to have different profiles such as dev, testing, staging, production etc. 
+
+Update the .yaml file as follows.
+
+spring:
+  profiles: development
+server:
+  port: 9090
+---
+
+Spring:
+  profiles: production
+server:
+  port: 8080
+
+Run the Spring Boot application as:
+
+mvn -Dspring.profiles.active=production install
+mvn -Dspring.profiles.active=development install
+
+Active profiles can be specified programatically using the @ActiveProfiles annotation. 
+@ActiveProfiles("test")
+
+==============================================
+
+Securing a microservice with OAuth2. 
+Spring boot configuration for OAuth2. 
+When a client application requires access to a protected resource, the client sends a request to an authorization
+server. 
+The authorization server validates the request and provides an access token. 
+The token is validated for every client-to-server request. The request and response sent back and forth 
+depends on the grant type. 
+
+To pom.xml 
+  add spring-security-oauth2 (Look at another example).
+  @EnableAuthorizationServer
+  @EnableResourceServer
+  @EnableAuthorizationServer
+
+================================================
+
+Enabling cross-origin access for microservies.
+
+CORS (Cross-Origin resourse sharing).
+With microservices - as each service runs with its own origin, it will get the issue of a client-side web 
+application consuming data from multiple origins. 
+I.E. browser client accessing Customer from the Customer microservice and Order History from the Order
+microservice.
+
+Spring boot provides a simple declarative approach to enabling cross-origin requests. 
+
+@RestController
+class GreetingController{
+  @CrossOrigin
+  @Requestmapping("/")
+  Greet greet(){
+    return new Greet("hello world!");
+  }
+
+
+
+  
+
