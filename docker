@@ -1,0 +1,58 @@
+Running one microservice instance per bare metal is not cost effective. 
+
+In most cases, enterprises deploy multiple microservices on a single bare metal server. 
+This could however lead to a "noisy neighbour" problem. 
+There is no isolation between the microservice instances running on the same machine. 
+Resulting in services eating up each other's space, impacting performance. 
+
+Alternate approach is running microservices on VMs. 
+VMs are heavyweight, therefore running VMs on a physical machine is not resource efficient. 
+This generally results in resource wastage. 
+In the case of sharing VM to deploy multiple services, we would end up facing the same issues
+of sharing the bare metal. 
+
+Java based microservices, sharing a VM or or bare metal to deploy multiple microservices also result in 
+sharing JRE amond MS. 
+Any update on JRE installed on the machine will have an impact on all the microservices deployed in the machine. 
+Similarly, if ther eare OS-level parameters, libraries, or tunings that are required for
+specific microservices, then it will be hard to manage them on a shared environment. 
+
+The microservice principle insists that it should be "self contained" and "autonomous" by fully 
+encapsulating its end-to-end runtime environment.
+Therefore all components, such as OS, JRE and microservice binaries have to be self contained and isolated. 
+
+CONTAINERS: 
+Provide private spaces on top of the OS. Operating system virtualization. 
+Kernal of the OS provides isolated virtual spaces. Each of these virtual spaces is called a container (Virtual Engines "VE").
+Allow processes to run on an isolated environment on top of host OS. 
+
+--------|---------|----------
+  c     |   c     |   c
+  o     |   o     |   o
+  n     |   n     |   n
+  t     |   t     |   t
+  a     |   a     |   a
+  i     |   i     |   i
+  n     |   n     |   n
+  e     |   e     |   e
+  r     |   r     |   r
+------------------------------
+|           OS              |
+------------------------------
+|       Server H/W          |
+------------------------------
+
+Containers are easy to build, ship and cun compartmentalized software components. 
+Containers pacakge all binaries and libs that are essential for running an application. 
+They reserve their own filesystem, IP, network interfaces, internal processes, namespaces
+OS libraries, application binaries, dependencies and other app configs. 
+
+============================================================================
+
+Difference between VMs and containers. 
+
+On the face of it virtualization and containerization exibit exactly the same characteristics. 
+
+
+
+
