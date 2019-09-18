@@ -105,19 +105,63 @@ Content-Based.
 ETag - is similar to Last-Modified header - except the value is a digest (e.g. MD5), allowing server to 
 identify if the cached contents of the resouce are differenct to the most recent version. 
 
+Cache-Control:public, max-age:31536000
+ETag: "15f0fff99ed5aae4edffdd6496d7131f"
 
+On subsequent subsequent browser requests If-None-Match request header is sent with the ETag
+value of the last requested version of the resource.
 
+Similarly to time based 304 is returned if the browser cached copy has not been modified. 
 
+===========================
 
+Visibility
 
+Most modern browsers include request/response visualization and introspection tools. (Inspect network tab)
 
+An initial request shows the default headers returned by the application (with no cache directives)
 
+By adding the cached query parameter, http://demo.com/?cache=true, the application turns on both 
+Cache-Control and Expires headers. 
 
+Adding an etag parameter to the request, http://demolcom/?etag=true, causes the sample app to specify
+the ETag digest of the JSON contents. 
 
+==========================
 
+Use cases
 
+Static assets:
 
+Normal usage: Starting point for any developer should be to add agressive caching strategy to the files in the
+application that will not change. I.E. CSS, Images, JS. As these files are typically re-requested on each page, 
+a large performance improvement can be seen with little effort. 
 
+Cache-control:public; max-age=31536000
+Expires: Mon, 25 Jun 2013 21:31:12 GMT
 
-    
+Dynamic content: 
 
+Developer must assess how heavily it can be cached and what the implications might be of service stale content
+to the user. 
+
+RSS every hour, JSON packets which drive the user's twiwwer timeline. Cache the resources for as long as you
+believe possible without causing issues for the end user. 
+
+Private content.
+
+Private content: Developers need to determine the cacheability of a particular resource, but also need to 
+consider the impact of having intermediary caches (web proxies) caching the files which may be outside
+of the users control. The safe option is to not cache these items at all. 
+
+Should end-client caching still be desirable, can ask for resources to only be cached privately. 
+
+Cache-Control:private, max-age=31536000
+
+Highly secure or variable resources often require no caching. For instance, anything involving a shopping cart
+checkout process, just omitting cache headers will not work. Many modern web browsers cache items based on their 
+own internal algorithms. 
+Necessary to tell the browser to explicity to not cache items. 
+
+Cache-Control:no-cache, no-store
+https://devcenter.heroku.com/articles/increasing-application-performance-with-http-cache-headers
