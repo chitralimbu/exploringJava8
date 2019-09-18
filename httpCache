@@ -28,6 +28,23 @@ Client Browser| -------------------------------------------------> |web server
      \|/  |
  Local browser 
     cache
-    
+
+For instance, Static resources such as CSS stylesheets, images, JS files and infrequently changing dynamic content
+have no need to be downloaded again during the user's session. In these instances it is benifitial for the users
+browser to cache these files locally, and use that copy whenever the resource is requested again. 
+An application using HTTP cache headers is able to control this caching behaviour and alleviate server-side load. 
+
+There are 2 primary cache headers, Cache-Control and Expires. 
+
+Cache-Control
+This effectively switches on caching in the browser. With this enabled browser cache for as long as specified.
+Without it browser will re-request the file on each subsequent request. 
+
+public: resources can be cached by both end-user's browser but also intermediate proxies 
+
+
+
+
+
     
 
