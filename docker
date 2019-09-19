@@ -53,6 +53,76 @@ Difference between VMs and containers.
 
 On the face of it virtualization and containerization exibit exactly the same characteristics. 
 
+VM's provide hardware virtualization.
+  -CPUs,
+  -Motherboards
+  -Memory etc
+VM : 
+  -Isolated unit with an embedded OS (Generally Guest OS). 
+  -VM's replicate the whole OS and run it within the VM with no dependency on the host OS
+  -As VM's imbed the full OS they are heavyweight in nature. 
+Advantage:
+  -Provide complete isolation to the processes running on VMs. 
+  -More friendly with infrastructure teams as it requires low level of infra competency to manage VMs. 
+Disadvantage:
+  -Limits the number of VMs one can spin up in a bare metal due to resource requirements. 
+  -Large size means starting and stopping takes time. 
+
+Containers: 
+Do not emulate the entire hardware or OS.
+Containers share certain parts of the host kernel and OS. 
+
+Containers provide an isolated "EXECUTION ENVIRONMENT" directly on top of the host OS.
+Advantage:
+  -Lighter and faster: Containers share the host OS. 
+  -Overall resource utilization of containers is fairly small. 
+  -Many smaller containers can be run on the same machine. 
+  -Container images are publically available in community portals, take base image from certified
+  sourse and add additional layers of software components on top of the downloaded base image. 
+
+Lightweight nature means it opens up opportunities: 
+Automation:
+  -Build
+  -Publishing
+  -Downloading
+  -Copying etc. 
+
+Ease of downloading and running means Developing REST API's more developer friendly. 
+Containers are part of CD pipelies as well. 
+
+Disadvantages:
+  -Security: Unable to put firewall rules inside a container.
+  -Processes inside the containers are entirely independent. 
+
+===============================================================================
+
+General advantages of containers. 
+
+Self contained:
+  -Package the essential application binaries and their dependencies together to make sure that there is 
+  no disparity between different environments. 
+  -Prompts 12-factor apps and immutable containers. 
+
+Lightweight:
+  -Small size, large footprint.
+  -Compared to VMs which take GBs images for containers are very small in size.
+  -The smaller footprint of containers speeds up:
+    -Running new containers
+    -Building
+    -Shipping
+    -Storing
+ 
+ Scalable:
+  -As they are very lightweitht and quick to startup, its a popular choice for cloud-friendly elastic applications. 
+ 
+ Portable:
+  -Containers provide portability across machines and cloud providers. 
+  -Once built they can be ported across multiple cloud providers, without relying on underlying machines. 
+ 
+ Less license cost: 
+  -
+
+
 
 
 
