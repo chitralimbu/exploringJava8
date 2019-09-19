@@ -1,0 +1,42 @@
+https://plainoldobjects.com/2015/09/02/does-each-microservice-really-need-its-own-database-2/
+
+Microservices - Database.
+
+Microservices improves agility and velocity. By decomposing a system into microservices, it is possible to
+develop and deploy each microservice independently and in parallel. 
+In order to achieve this each microservice must be loosely coupled. Each microservices data must be private
+to a particular service and only accessible via it's API. 
+Having two or more microservice share the same persistant data requires careful coordination while changing the
+data's schema, which could result in slower development. 
+
+Methods to keep service's persistant data private if you are utilizing relational databases. 
+
+1.Private-tables-per-service - each service owns a set of tables that must only be accessed by that service. 
+2.Schema-per-service - each service has a database schema that's private to that service.
+3.Database-server-per-service - each service has it's own database. 
+
+1 and 2 have the lowest overhead, however it makes sense for database intensive services to have their own 
+database server. 
+
+A method to enforce modularity is to create barriers. For example assign a different database uer id to 
+each service and use database access control mechanisms. 
+
+Polygot persistance archeticture. Choose the type of database which is best suited to that service's requiremetns. 
+Some examples:
+  -ElasticSearch: For text searches
+  -Neo4j: Manipulate social graph. 
+The point being, it might not make sense to use a relational database for every service. 
+
+With a privatised and modular implementation, one of the challenging aspects is to implement business
+transaction that update data owned by multiple services - rather than using a distributed transaction, 
+consider using eventually consistent, or event-driven approach to maintain database consitancy. 
+
+Another challenge is sharing data between services. For example several services need to access user's 
+profile data. 2 possible approaches: 
+1. Encapsulate user profile data with the service, which is then called by other services. 
+2. Event-driven mechanism to replicate data to each service that needs it. 
+
+Difficult to implements some queires because you cannot do data joins across data owned by multiple services. 
+Possible to join the data within a service.
+In other situation could use Command Query Responsibility Segregation (CQRS) and maintain denormalizes views. 
+
