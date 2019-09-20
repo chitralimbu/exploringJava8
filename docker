@@ -119,8 +119,29 @@ Lightweight:
   -Containers provide portability across machines and cloud providers. 
   -Once built they can be ported across multiple cloud providers, without relying on underlying machines. 
  
- Less license cost: 
-  -
+DevOps:
+  -Lightweight footprint of containers means its easy to automate build and publish and download containers
+  from remote repositories. 
+  -Easy to use in agile and DevOps env and intigrate with automated delivery pipelines.
+  -Immutable containers means that it supports a build once policy, therefore is easy to move across multiple
+  environments. 
+  -Easy to manage as part of their day to day life. 
+  
+Version controlled:
+
+Reusable: 
+  -Container images are reusable artifacts. 
+  
+Immutable containers:
+  -Containers are created and disposed after usage. 
+  -Never updated or patched. 
+  -Patching results in lack of traceability and an inability to recreate env consistantly. 
+  
+  
+  
+  
+  
+  
 
 
 
