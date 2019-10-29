@@ -1,0 +1,296 @@
+Example taken from: https://www.freecodecamp.org/news/learn-kubernetes-in-under-3-hours-a-detailed-guide-to-orchestrating-containers-114ff420e882/
+Abstracting the underlying infrastructure. 
+
+Kubernetes abstracts the underlying infrastructure by providing a simple API to
+which we can send requests. 
+
+Requests prompt Kubernetes to meet them at its best of capabilites. 
+
+PODS.
+
+MIMIKUBE - 
+
+minikube start
+
+provides a Kubernetes Cluster that has only one node. 
+Pods can be composed of one or even a group of containers that shre the same execution 
+environment.
+
+Usually only one container por pod. 
+
+Each pod has a unique IP address in the Kubernetes cluster.
+
+Pods can have multiple containers. 
+
+Containers in a pod share the same volume, ame ip, port space, IPC namespace. 
+
+POD DEFINITION. 
+
+apiVersion: v1
+kind: Pod													#1
+metadata:
+	name: sa-frontend										#2
+spec:														#3
+	containers:
+		- image: rinormaloku/sentiment-analysis-frontend	#4
+		  name: sa-frontend									#5
+		  ports:
+			-containerPort: 80								#6
+		
+1. Kind: specifies the kind of the Kubernetes Resource that we want to create. In this
+case POD. 
+
+2. Defines the name of the resource. 
+
+3. Spec is the object that defines the desired state for the resource. 
+	Most imprtant property of a Pods Spec is the Array of containers. 
+
+4. Image is the container image we want to start in this pod. 
+
+5. Name is the uniaue name for a container in a pod. 
+
+6. Container port: is the port a which the container is listening. This is just an 
+indication for the reader. 
+
+kubectl create -f sa-frontend-pod.yaml
+
+kubectl get pods
+
+ACCESSING THE APPLICATION EXTERNALLY. 
+
+kubectl port-forward -sa frontend 88:80
+
+THE WRONG WAY TO SCALE UP. 
+
+apiVersion: v1
+kind: Pod
+metadata:
+	name: sa-frontend2
+	labels:
+		app:sa-frontend
+spec:
+	containers:
+		- image: rinormaloku/sentiment-analysis-frontend
+		  name: sa-frontend
+		  ports:
+			- containerPort: 80
+		
+Pod Summary. 
+
+Load balancing between pods. 
+
+Kubernetes Service acts as the entry point to a set of pods that provide the same functional
+service. 
+This service does the heavy lifting of discovering services and load balancing between
+them. 
+
+Different pods with different functional services. 
+How does a service know which pods to target. 
+This is done using Labels. 2 Step process. 
+1.Applying label to all the pods that we want our service to target. 
+2.Applying "selector" to our services so that defines which labeled pods to target. 
+
+kubectl apply -f sa-frontend-pod.yaml
+kubectl apply -f sa-frontend-pod2.yaml
+kubectl get pod -l app=sa-frontend
+
+YAML definition for LoadBalancer Service. 
+
+apiVersion: v1
+kind: Service				#1
+metadata:
+	name:sa-frontend-lb
+spec:
+	type: LoadBalancer		#2
+	ports:
+		- port: 80			#3
+		  protocol:TCP		#4
+		  targetPort:80		#5
+	selector:				#6
+		app: sa-frontend	#7
+
+1. Kind: A service
+2. Type: Specification type, chose loadbalancer for obvious reasons. 
+3. Port: Specifies the port in which the service gets requests.
+4. Protocol: Defines the communication
+5. TargetPort: The port at which incoming requests are forwarded
+6. Selector: Object that contais the properties for selecting pods. 
+7. app: sa-frontend defines which pods to target. Only pods that are labeled with "app:sa-frontend"
+
+To create the service: 
+kubectl create -f service-sa-frontend-lb.yaml
+kubectl get svc. 
+minikube service sa-frontend-lb
+
+Kubernetes in practice - Deployments. 
+
+This helps us with change. Deployment resource automates the process of moving from
+one version of the application to the next, with zero downtime and incase of failures,
+enables us to quickly roll back to the prev version. 
+
+Deployments in Practice. 
+
+Currently there are 2 pods and a service exposing them and load balancing between them. 
+We mentioned that deplloying pods separately is not recommended. 
+Requires separately managing each(create, update, delete, monitoring their health).
+Quick updates and fast rollbacks are out of the question!. 
+Not acceptable and "Deployments" Kubernetes resource solves each of these issues. 
+
+State what we want to achieve. 
+1. Two pods of the image rinormaloku/sentiment-analysis-frontend
+2. Zero Downtime deployments
+3. Pods labeled with app: sa-frontend so that the services get discovered by the Service 
+sa-frontend-lb. 
+
+apiVersion: apps/v1
+kind: Deployment											#1
+metadata:
+	name: sa-frontend
+spec:
+	selector:												#2
+		matchLabels:
+			app:sa-frontend
+	replicas: 2												#3
+	minReadySecods: 15
+	strategy:
+		type: RollingUpdate									#4
+		rollingUpdate:
+			maxUnavailable: 1								#5
+			maxSurge: 1										#6
+		template:											#7
+			metadata:
+				labels:
+					app: sa-frontend						#8
+				spec:
+				containers:
+					- image: rinormaloku/sentiment-analysis-frontend
+					  imagePullPolicy: always				#9
+					  name: sa-frontend
+					  ports: 
+						-containerPort: 80
+						
+1. Kind: A deployment. 
+2. Selector: Pods matching the selector will be taken under the management of this deployment. 
+3. Replicas: is a property of the dployments Spec object that defines how many 
+pods we want to run. (2)
+4. Type: specifies the strategy used in this deployment when moving from the current
+version to the next. Strategy RollingUpdate ensures Zero Downtime deployments.
+5. MaxUnavailable: property of the RollingUpdate object that specifies the maximum
+unavailable pods allowed (compared to the desired state) when doing a rolling update. 
+For our deployment which has 2 replicas this means that after terminating one Pod, 
+We still have one pod running, keeping the application accessible. 
+6. MaxSurge: Property of RollingUpdate object that defines the maximum amount of pods
+added to a deployment (compared to the desired state). For our deployment, this means
+that when moving to a new version we can add one pod, which adds up to 3 pods at the same time. 
+7. Template: specifies the pod template that the Deployment will use to create new pods. 
+8. app: sa-frontend the label to use for the pods created by this template. 
+9. ImagePullPolicy when set to Always, it will pull the container images on each redeployment. 
+
+kubectl apply -f sa-frontend-deployment.yaml
+kubectl delete pod <pod-name> 
+
+Deleting one pod made the Deployment notice that the current state (1 pod running) is 
+different from the desired state (2 pods running) so it started another pod. 
+
+WHATS SO GOOD ABOUT DEPLOYENTS. 
+
+Benifit 1: Rolling a Zero-Downtime deployment. 
+Product manager comes with a new requirement, clents wants some change. Code is chipped
+and the container image is given. 
+Edit the yaml file.sa-frontend-deployment.yaml to the updated image. save it and execute
+the following command:
+
+kubectl apply -f sa-frontend-deployment-green.yaml --record
+
+kubectl rollout status deployment sa-frontend
+
+Verifying the deployment. 
+
+minikube service sa-frontend-lb. 
+
+BEHIND THE SCENES OF "The RollingUpdate"
+
+After we applied the new deployment, Kubernetes compares the new state to the old one. 
+In this case, the new state requests two pods with the image *name*. This is different from the
+current state running so it kicks in the RollingUpdate. 
+
+The RollingUpdate acts according to the rules specified. I.E.
+maxUnavailable: 1
+maxSurge: 1
+This means deployment can terminate only one pod, and can start only one new pod. 
+Process is repeated until all pods are replaced. 
+
+Benifit # 2 - Rolling back to a previous state. 
+
+Product manager runs into your office and having a crisis. 
+NEED TO ROLL BACK. 
+
+kubectl rollout history deployment sa-frontend. 
+
+kubectl rollout undo deployment sa-frontend --to-revision=1
+
+Deploying the sa-logic deployment.
+
+kubectl apply -f sa-logic-deploymet.yaml --record
+
+Service SA logic. 
+
+Java application depends on the sentiment analysis done by Python app. 
+
+In contrast to when we were running locally, don't have one single python app listening
+on one port, we have 2 pods if needed more. 
+
+Need a Service that "acts as the entry point to a set of pods that provide the same
+functional service". We can use the Service SA-Logic as the entry point to all the
+SA-Logic pods. 
+
+Deployment SA-WebApp
+sa-web-app-deployment.yaml 
+
+- image: rinormaloku/sentiment-analysis-web-app
+  imagePullPolicy: always
+  name: sa-web-app
+  env:
+	-	name: SA_LOGIC_API_URL
+		value: "http://sa-logic"
+  ports:
+	-	containerPort: 8080
+
+What does the env property do ?
+	
+It is declaring the environment variable SA_LOGIC_API_URl with the value "http://sa-logic"
+inside out pods. 
+Why are we initilizing it to http://sa-logic
+
+KUBE-DNS.
+
+Kubernetes has a special pod "kube-dns" by default all pods use it as the DNS Server. 
+One importand property of kube-dns is that it creates a DNS record for each created service.
+
+When we created the service sa-logic it got an IP address. It's name was added as a record
+(In conjuction with the IP) in kube-dns. 
+Enables all the pods to translate the sa-logic to the SA-Logic services IP address. 
+
+kubectl apply -f sa-webapp-deployment.yaml --record. 
+
+kubectl apply -f service-sa-web-app-lb.yaml 
+
+When th initial SA-Was deployed, container image was pointing to our SA-WebApp in 
+http://localhost:8080/sentiment. 
+
+1. Get SA-WebApp LoadBalancer IP by executing the following command. 
+
+minikube service list. 
+
+2. Use the SA-WebApp LoadBalancer IP in the client. 
+
+
+
+
+
+
+
+
+
+
+
