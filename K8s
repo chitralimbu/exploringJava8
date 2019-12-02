@@ -1,0 +1,61 @@
+Kubernetes in action:
+Labels: 
+app: Specifies which app, component or MS this pod belongs to  
+rel: Shows whether the application running in th epod is stable, beta or canary. 
+A canary release is when you deploy a new version of an application next to the stable version, and only let a small fraction of users hit the new version to see how it behaves before rolling it out to all users
+
+Get by label
+Kubectl po --show-labels
+kubectl get po -L creation_method,env
+
+Modify label
+k label po frontend env=debug --overwrite
+
+Listing subsets of pods. 
+kubectl get po -l creation_method=manual
+kubectl get po -l '!env'
+similarly 
+creation_method!=manual
+
+Using multiple Conditions in a label selector. 
+app=px,rel=beta
+
+3.5
+Using labels and selectios to constrain pod scheduling. 
+Pods by default are scheduled randomly across worker nodes. 
+You may want to have some say in where a pod should be scheduled. 
+E.g. If part of your worker nodes have HDD and others have SSD. May want to schedule certain pods
+to one group of nodes and the rest to other. 
+Another example is when you need to shedule pods performing intensive GPU based computation only 
+to nodes that provid the required GPU acceleration. 
+
+Never want to specifically sate what node a pod should be scheduled to, this couples the application to 
+the infrastructure. 
+If you want to have a sa in where a pod should be shceduled, instead of specifying an exact node. 
+Kubernetes selects a node that matches those requirements. Can be done through node labels and label selectors. 
+
+Labels can be attached to any Kubernetes object including nodes. 
+kubectl label node gke-kubia-85f6-node-0rrx gpu=true
+list only ones with labels gpu=true 
+kubectl get nodes -l gpu=true
+
+Schedule pods to specific nodes. 
+
+apiVersion: v1
+...
+...
+spec:
+  nodeSelector:
+    gpu: "true"
+    containers:
+    - image: chitralimbu/image
+      name: chitralimbu
+      
+Kubernetes will only select nodes with gpu: "true" label. 
+
+Similarly could also schedule a pod to an exact node. 
+because each node also has a unique label with the key kubernetes.io/hostname and value set to the actual hostname of the node.
+ 
+Annotating PODS. 
+
+ 
